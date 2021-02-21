@@ -13,7 +13,7 @@ services:
     links:
       - webtrees-mysql:webtrees-mysql
     ports:
-      - "10088:80"
+      - "80:80"
     depends_on:
       - webtrees-mysql
       - webtrees-data-volumes
