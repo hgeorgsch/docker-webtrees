@@ -1,43 +1,62 @@
-# WEBTREES DOCKER COMPOSE
-#
-# start   http://localhost:10088
-#
-
-version: '2'
 services:
-
-  webtrees:
-    build:
-       context: ./webtrees
-    container_name:  webtrees2
-    links:
-      - webtrees-mysql:webtrees-mysql
+  app:
+    image: ghcr.io/nathanvaughn/webtrees:latest
+    container_name: webtrees
     ports:
-      - "10088:80"
+      - 10088:80
+      # - 443:443
     depends_on:
-      - webtrees-mysql
-      - webtrees-data-volumes
-    volumes_from: 
-      - webtrees-data-volumes
-       
-  webtrees-mysql:
-    image: mysql:8.0
-    container_name: webtrees-mysql
-    user: root
+      - db
     environment:
-      - MYSQL_ROOT_PASSWORD=mustnotchange
-      - MYSQL_DATABASE=webtrees
-      - MYSQL_USER=webtrees
-      - MYSQL_PASSWORD=mustnotchange
-    volumes_from: 
-      - webtrees-data-volumes
-    depends_on:
-      - webtrees-data-volumes
-
-  webtrees-data-volumes:
-    image: busybox
-    container_name: webtrees-volumes
+      PRETTY_URLS: "1"
+      HTTPS: "0"
+      HTTPS_REDIRECT: "0"
+      LANG: "en-US"
+      BASE_URL: "http://localhost:10088"
+      DB_TYPE: "mysql"
+      DB_HOST: "db"
+      DB_PORT: "3306"
+      DB_USER: "webtrees"
+      DB_PASS: "baddbpassword"
+      DB_NAME: "webtrees"
+      DB_PREFIX: "wt_"
+      WT_USER: "georg"
+      WT_NAME: "Hans Georg Schaathun"
+      WT_PASS: "badwtpassword"
+      WT_EMAIL: "hg+slekt@schaathun.net"
+      PUID: "1001"
+      PGID: "1001"
+    restart: unless-stopped
     volumes:
-      - ./mysql:/var/lib/mysql
-      - ./genealogy/Data:/var/www/html/data
-      
+      # - ~/certs:/certs/
+      - ./genealogy/:/var/www/webtrees/data
+      - ./media/:/var/www/webtrees/media
+
+  db:
+    image: docker.io/library/mariadb:11
+    container_name: webtrees-db
+    environment:
+      MARIADB_DATABASE: "webtrees"
+      MARIADB_USER: "webtrees"
+      MARIADB_ROOT_PASSWORD: "badrootpassword"
+      MARIADB_PASSWORD: "baddbpassword"
+    # See: https://github.com/NathanVaughn/webtrees-docker/issues/145
+    restart: unless-stopped
+    volumes:
+      - ./db:/var/lib/mysql
+
+  # db:
+  #   environment:
+  #     POSTGRES_DB: "webtrees"
+  #     POSTGRES_USER: "webtrees"
+  #     POSTGRES_PASSWORD: "badpassword"
+  #   image: docker.io/library/postgres:latest
+  #   restart: unless-stopped
+  #   volumes:
+  #     - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:
+    driver: local
+  app_data:
+    driver: local
