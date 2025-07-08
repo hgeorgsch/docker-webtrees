@@ -1,6 +1,6 @@
-FROM php:7.4.11-apache
+FROM php:8.1-apache
 
-ENV WEBTREES_VERION="2.0.15"
+ENV WEBTREES_VERION="2.1.7"
 
 WORKDIR /tmp_download
 
@@ -23,13 +23,14 @@ RUN apt-get upgrade -y
 RUN apt-get install -y libmagickwand-dev --no-install-recommends && \
     pecl install imagick && docker-php-ext-enable imagick
 
-RUN docker-php-ext-configure gd
-RUN docker-php-ext-configure zip
-RUN docker-php-ext-configure intl
-RUN docker-php-ext-configure pdo_mysql
-RUN docker-php-ext-configure pdo_pgsql
-RUN docker-php-ext-configure pgsql
-RUN docker-php-ext-install -j$(nproc) pdo_mysql gd zip intl pdo_pgsql pgsql exif
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg 
+# RUN docker-php-ext-configure zip
+# RUN docker-php-ext-configure intl
+# RUN docker-php-ext-configure pdo_mysql
+# RUN docker-php-ext-configure pdo_pgsql
+# RUN docker-php-ext-configure pgsql
+RUN docker-php-ext-install -j$(nproc) pdo_mysql gd zip intl exif
+# RUN docker-php-ext-install -j$(nproc) pdo_mysql gd zip intl pdo_pgsql pgsql exif
 RUN unzip webtrees-${WEBTREES_VERION}.zip
 RUN mkdir /usr/local/tome
 RUN rm -rf /var/www/html
@@ -42,7 +43,7 @@ RUN apt-get -y autoremove
 RUN rm -rf /var/lib/apt/lists/*
 
 FROM scratch
-MAINTAINER QuadStingray <docker-webtrees@quadstingray.com>
+MAINTAINER HG <georg+github@schaathun.net>
 
 ENV PHP_MAX_EXECUTION_TIME="80"
 ENV PHP_POST_MAX_SIZE="265M"
